@@ -1,0 +1,20 @@
+<routingschema>
+  <routingelement>
+    <fieldname>category</fieldname>
+    <datatype>string</datatype>
+    <datarange>
+      <rangeelement>eat</rangeelement>
+      <rangeelement>playing</rangeelement>
+    </datarange>
+  </routingelement>
+  <routingelement>
+    <fieldname>age</fieldname>
+    <datatype>int</datatype>
+    <datarange>
+      <rangeelement>10</rangeelement>
+      <rangeelement>20</rangeelement>
+      <rangeelement>30</rangeelement>
+      <rangeelement>40</rangeelement>
+    </datarange>
+  </routingelement>
+</routingschema>

@@ -1,0 +1,10 @@
+<schema>Category</schema>
+<schema>SubCategory</schema>
+<schema>Score</schema>
+<schema>WaitingTime</schema>
+<schema>PriceRange</schema>
+<schema>ParkingArea</schema>
+<schema>Gender</schema>
+<schema>Age</schema>
+<schema>Photo</schema>
+

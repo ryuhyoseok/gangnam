@@ -7,13 +7,17 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,14 +26,16 @@ import java.util.List;
  * Time: 오후 7:10
  * To change this template use File | Settings | File Templates.
  */
-public class parsebolt extends BaseBasicBolt {
-  String[] tags;
-  public parsebolt(String[] tags){
-    this.tags = tags;
+public class FeatureExtractionBolt extends BaseBasicBolt {
+  private HashMap<String , String[]> inputs;
+  private String[] routings;
+  private String[] publish;
+  public FeatureExtractionBolt(String[] publish , HashMap<String , String[]> inputs,
+      String[] routings){
+    this.publish = publish;
+    this.inputs = inputs;
+    this.routings = routings;
   }
-//  public Fields getTags(String[] tags){
-//    return new Fields(tags);
-//  }
 
   @Override
   public void cleanup() {
@@ -42,20 +48,56 @@ public class parsebolt extends BaseBasicBolt {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder parser;
 
+    int query = 0;
+    boolean isPub = true;
     ByteArrayInputStream is = new ByteArrayInputStream(tuple.getString(0).getBytes());
     try {
       parser = factory.newDocumentBuilder();
       Document document = parser.parse(is);
-      for(String tag : tags){
+      Set<String> inputSet = inputs.keySet();
+      
+      for(String inputSchema : inputSet) {
+        NodeList nodes = document.getElementsByTagName(inputSchema);
+        if(nodes.getLength() > 0){
+          String content = nodes.item(0).getTextContent();
+          String[] ranges = inputs.get(inputSchema);
+          int counter = 0;
+          for(;counter < ranges.length ; counter ++) {
+            if(ranges[counter].equals(content)){
+              break;
+            }
+          }
+          query += counter;
+          query = query * 10;
+        }
+        
+      }
+      
+      for(String tag : routings){
         NodeList nodes = document.getElementsByTagName(tag);
         if(nodes.getLength() > 0){
           String content = nodes.item(0).getTextContent();
+          if(content.equals("")) {
+            values.add(Constants.DONCARE);
+          }else {
           values.add(content);
+          }
         }
       }
+      
+      if(document.getDocumentElement().getTagName().equals("PublishDoc")) {
+        isPub = true;
+      }else if(document.getDocumentElement().getTagName().equals("SubscribeDoc")) {
+        isPub = false;
+      }else{
+        throw new Exception("WRONG STATEMENT");
+      }
+      
     } catch (Exception e) {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
     }
+    values.add(query);
+    values.add(isPub);
     values.add(tuple.getString(0));
     collector.emit(values);
   }
@@ -63,11 +105,12 @@ public class parsebolt extends BaseBasicBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     List<String> list = new ArrayList<String>();
-    for(String s : tags){
+    for(String s : routings){
       list.add(s);
     }
+    list.add("query");
+    list.add("isPub");
     list.add("xml");
     declarer.declare(new Fields(list));
   }
-
 }

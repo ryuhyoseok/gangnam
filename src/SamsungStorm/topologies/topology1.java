@@ -1,5 +1,7 @@
 package SamsungStorm.topologies;
 
+import java.util.HashMap;
+
 import SamsungStorm.Bolts.*;
 import SamsungStorm.Spouts.Spout;
 import backtype.storm.Config;
@@ -23,8 +25,13 @@ public class topology1 {
     TopologyBuilder builder = new TopologyBuilder();
 
     builder.setSpout("Spout", new Spout(), 1);
-
-    builder.setBolt("parseBolt", new parsebolt(new String[]{"A", "B", "E"}), 1).globalGrouping("Spout");
+    
+    HashMap<String , String[] > inputs = new HashMap<String , String[]> ();
+    inputs.put("A", new String[]{"1", "2", "3", "4"});
+    inputs.put("B", new String[]{"1", "2", "3", "4"});
+    inputs.put("E", new String[]{"1", "2", "3", "4"});
+    
+    builder.setBolt("parseBolt", new FeatureExtractionBolt(new String[]{"PublishDoc" , "SubscribeDoc"},inputs,new String[]{"A", "B", "E"}), 1).globalGrouping("Spout");
 
     builder.setBolt("routingboltA", new RoutingBolt(new String[]{"A", "B", "E"}, "A", new String[]{"1", "2"}), 1).fieldsGrouping("parseBolt", new Fields("A"));
 

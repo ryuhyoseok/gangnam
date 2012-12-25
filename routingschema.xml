@@ -1,0 +1,5 @@
+<routingSchema>
+<schema>Category</schema>
+<schema>SubCategory</schema>
+<schema>Age</schema>
+</routingSchema>

@@ -38,8 +38,10 @@ public class Spout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     Utils.sleep(1000);
-    String xml = new String("<Doc><A>1</A><B>2</B><C><D>3</D><E>4</E></C></Doc>");
-
+    String xml = new String("<SubscribeDoc><A>1</A><B>2</B><C><D>3</D><E>4</E></C></SubscribeDoc>");
+    String xml2 = new String("<PublishDoc><A>2</A><B>1</B><C><D>3</D><E>4</E></C></PublishDoc>");
+    
     _collector.emit(new Values(xml));
+    _collector.emit(new Values(xml2));
   }
 }

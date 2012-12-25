@@ -78,6 +78,8 @@ public class RoutingBolt implements IRichBolt {
     for(String s : this.routingAttrs){
       list.add(s);
     }
+    list.add("query");
+    list.add("isPub");
     list.add("xml");
     declarer.declare(new Fields(list));
   }

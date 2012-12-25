@@ -1,0 +1,57 @@
+<inputSchema>
+<schema>
+  <name>Category</name>
+  <range>eating</range>
+  <range>playing</range>
+</schema>
+<schema>
+  <name>SubCategory</name>
+  <range>A</range>
+  <range>B</range>
+  <range>C</range>
+  <range>D</range>
+</schema>
+<schema>
+  <name>Score</name>
+  <range>10</range>
+  <range>20</range>
+  <range>30</range>
+  <range>40</range>
+</schema>
+<schema>
+  <name>WaitingTime</name>
+  <range>10</range>
+  <range>20</range>
+  <range>30</range>
+  <range>40</range>
+</schema>
+<schema>
+  <name>PriceRange</name>
+  <range>10</range>
+  <range>20</range>
+  <range>30</range>
+  <range>40</range>
+</schema>
+<schema>
+  <name>ParkingArea</name>
+  <range>yes</range>
+  <range>no</range>
+</schema>
+<schema>
+  <name>Gender</name>
+  <range>man</range>
+  <range>woman</range>
+</schema>
+<schema>
+  <name>Age</name>
+  <range>10</range>
+  <range>20</range>
+  <range>30</range>
+  <range>40</range>
+</schema>
+<schema>
+  <name>Photo</name>
+  <range>yes</range>
+  <range>no</range>
+</schema>
+</inputSchema>

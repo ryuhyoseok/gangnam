@@ -85,12 +85,12 @@ public class FeatureExtractionBolt extends BaseBasicBolt {
         }
       }
       
-      if(document.getDocumentElement().getTagName().equals("PublishDoc")) {
+      if(document.getDocumentElement().getTagName().equals("publish")) {
         isPub = true;
-      }else if(document.getDocumentElement().getTagName().equals("SubscribeDoc")) {
+      }else if(document.getDocumentElement().getTagName().equals("subscribe")) {
         isPub = false;
       }else{
-        throw new Exception("WRONG STATEMENT");
+        throw new Exception("WRONG STATEMENT  " + tuple.getString(0));
       }
       
     } catch (Exception e) {

@@ -1,5 +1,6 @@
 package SamsungStorm.topologies;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 
 import SamsungStorm.Bolts.*;
@@ -21,41 +22,50 @@ import backtype.storm.tuple.Fields;
 public class topology1 {
 
   public static void main(String[] args) throws Exception {
+    if(args.length < 7) {
+      System.out.println(" TOPOLOGY_NAME   SERVERADDR   PORT    SPOUTNUM    FEATURENUM    QUERYNUM  LOCAL");
+//      System.exit(0);
+    }
+
+    Format format = new Format();
+    HashMap<String , String[]> routingMap = format.getRoutingSchema() ;
+    String[] routing = routingMap.keySet().toArray(new String[0]);
+
+    String topol = args[0];
+    String serverAddr = args[1];
+    int port = Integer.parseInt(args[2]);
+    int spoutNum = Integer.parseInt(args[3]);
+    int featureNum = Integer.parseInt(args[4]);
+    int queryNum = Integer.parseInt(args[5]);
+    boolean local = Boolean.parseBoolean(args[6]);
+    System.out.println(topol);
+    System.out.println(serverAddr);
+    System.out.println(port);
+
 
     TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout("Spout", new Spout(), 1);
 
+    builder.setSpout( "Spout", new Spout(serverAddr , port), spoutNum );
+
+    builder.setBolt("parseBolt", new FeatureExtractionBolt( new String[]{} ,format.getInputSchema() , routing), featureNum ).shuffleGrouping("Spout");
+
+    builder.setBolt("routingboltA", new RoutingBolt(routing, routing[0], routingMap.get(routing[0])), 1).shuffleGrouping("parseBolt");
     
-    HashMap<String , String[]> input = new HashMap<String , String[]> ();
-    
-    input.put("A", new String[]{"1", "2", "3", "4"});
-    input.put("B", new String[]{"1", "2", "3", "4"});
-    input.put("E", new String[]{"1", "2", "3", "4"});
-    
-    builder.setBolt("parseBolt", new FeatureExtractionBolt(new String[]{} ,input , new String[]{"A", "B", "E"}), 1).globalGrouping("Spout");
+    builder.setBolt("routingboltB", new RoutingBolt(routing, routing[1], routingMap.get(routing[1])), 1).fieldsGrouping("routingboltA", new Fields(routing[0]));
 
-    builder.setBolt("routingboltA", new RoutingBolt(new String[]{"A", "B", "E"}, "A", new String[]{"1", "2"}), 1).shuffleGrouping("parseBolt");
-    
-    builder.setBolt("routingboltB", new RoutingBolt(new String[]{"A", "B", "E"}, "B", new String[]{"1", "2", "3"}), 1).fieldsGrouping("routingboltA", new Fields("A"));
+    builder.setBolt("routingboltE", new RoutingBolt(routing, routing[2], routingMap.get(routing[2])), 1).fieldsGrouping("routingboltB", new Fields(routing[1]));
 
-    builder.setBolt("routingboltE", new RoutingBolt(new String[]{"A", "B", "E"}, "E", new String[]{"1", "2", "3", "4"}), 1).fieldsGrouping("routingboltB", new Fields("B"));
+    builder.setBolt("QueryBolt", new QueryBolt(),1).fieldsGrouping("routingboltB", new Fields(routing[2]));
 
-    builder.setBolt("QueryBolt", new QueryBolt(),1).fieldsGrouping("routingboltB", new Fields("E"));
-/*
-builder.setBolt("AggregationBolt", new AggregationBolt(), 10)
-.shuffleGrouping("Middle","area,x,y");
-
-builder.setBolt("QuantityBolt", new QuantityBolt(), 10)
-.shuffleGrouping("Middle","area,val");*/
     Config conf = new Config();
-    conf.setDebug(true);
+    conf.setDebug(false);
 
 
-    if (args != null && args.length > 0) {
+    if (!local) {
       conf.setNumWorkers(3);
 
-      StormSubmitter.submitTopology("mytopology", conf, builder.createTopology());
+      StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     } else {
       conf.setMaxTaskParallelism(3);
 

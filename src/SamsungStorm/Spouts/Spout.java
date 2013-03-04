@@ -9,6 +9,7 @@ import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
 import java.io.*;
+import java.net.*;
 import java.util.Map;
 import java.util.Random;
 
@@ -21,8 +22,18 @@ import java.util.Random;
  */
 public class Spout extends BaseRichSpout {
 
-  SpoutOutputCollector _collector;
+  private SpoutOutputCollector _collector;
+  private ObjectInputStream oin;
+  private Socket socket;
+  private int port;
+  private String serverAddr;
 
+
+
+  public Spout(String  addr , int port) {
+    this.serverAddr = addr;
+    this.port = port;
+  }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
@@ -31,17 +42,25 @@ public class Spout extends BaseRichSpout {
 
   @Override
   public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
+    System.out.println("Connection START");
     _collector = spoutOutputCollector;
-
+    try {
+      socket = new Socket(serverAddr , port);
+      oin = new ObjectInputStream(socket.getInputStream());
+      System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
+    } catch(IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void nextTuple() {
-    Utils.sleep(1000);
-    String xml = new String("<SubscribeDoc><A>1</A><B>2</B><C><D>3</D><E>4</E></C></SubscribeDoc>");
-    String xml2 = new String("<PublishDoc><A>2</A><B>1</B><C><D>3</D><E>4</E></C></PublishDoc>");
-    
-    _collector.emit(new Values(xml));
-    _collector.emit(new Values(xml2));
+    try {
+    String s = (String)(oin.readObject());
+    _collector.emit(new Values(s));
+
+    }catch(Exception e){
+      e.printStackTrace();
+    }
   }
 }

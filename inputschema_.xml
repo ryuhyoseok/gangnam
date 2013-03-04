@@ -1,36 +1,48 @@
 <inputSchema>
 <schema>
   <name>Category</name>
-  <range>eating</range>
-  <range>playing</range>
+  <range>Food</range>
+  <range>Fun</range>
 </schema>
 <schema>
   <name>SubCategory</name>
-  <range>A</range>
-  <range>B</range>
-  <range>C</range>
-  <range>D</range>
+  <range>Korean</range>
+  <range>Chinese</range>
+  <range>Japanese</range>
+  <range>Western</range>
+  <range>Liquid</range>
+  <range>Amusements</range>
+  <range>Talking</range>
+  <range>Culture</range>
 </schema>
 <schema>
   <name>Score</name>
+  <range>1</range>
+  <range>2</range>
+  <range>3</range>
+  <range>4</range>
+  <range>5</range>
+  <range>6</range>
+  <range>7</range>
+  <range>8</range>
+  <range>9</range>
   <range>10</range>
-  <range>20</range>
-  <range>30</range>
-  <range>40</range>
 </schema>
 <schema>
   <name>WaitingTime</name>
-  <range>10</range>
-  <range>20</range>
-  <range>30</range>
-  <range>40</range>
+    <range>1</range>
+    <range>2</range>
+    <range>3</range>
+    <range>4</range>
+    <range>5</range>
 </schema>
 <schema>
   <name>PriceRange</name>
-  <range>10</range>
-  <range>20</range>
-  <range>30</range>
-  <range>40</range>
+    <range>1</range>
+    <range>2</range>
+    <range>3</range>
+    <range>4</range>
+    <range>5</range>
 </schema>
 <schema>
   <name>ParkingArea</name>
@@ -39,15 +51,14 @@
 </schema>
 <schema>
   <name>Gender</name>
-  <range>man</range>
-  <range>woman</range>
+  <range>Male</range>
+  <range>Female</range>
 </schema>
 <schema>
   <name>Age</name>
   <range>10</range>
   <range>20</range>
   <range>30</range>
-  <range>40</range>
 </schema>
 <schema>
   <name>Photo</name>

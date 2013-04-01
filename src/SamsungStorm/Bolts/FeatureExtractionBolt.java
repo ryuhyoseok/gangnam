@@ -48,8 +48,13 @@ public class FeatureExtractionBolt extends BaseBasicBolt {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder parser;
 
-    int query = 0;
+
+    long query = 0;
+    double pub_x = 0;
+    double pub_y = 0;
+
     boolean isPub = true;
+
     ByteArrayInputStream is = new ByteArrayInputStream(tuple.getString(0).getBytes());
     try {
       parser = factory.newDocumentBuilder();
@@ -90,7 +95,7 @@ public class FeatureExtractionBolt extends BaseBasicBolt {
       }else if(document.getDocumentElement().getTagName().equals("subscribe")) {
         isPub = false;
       }else{
-        throw new Exception("WRONG STATEMENT  " + tuple.getString(0));
+        throw new Exception("WRONG STATEMENT  " + tuple.getStringByField("xml"));
       }
       
     } catch (Exception e) {

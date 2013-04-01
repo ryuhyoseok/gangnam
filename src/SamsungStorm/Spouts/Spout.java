@@ -23,7 +23,7 @@ import java.util.Random;
 public class Spout extends BaseRichSpout {
 
   private SpoutOutputCollector _collector;
-  private ObjectInputStream oin;
+  private DataInputStream din;
   private Socket socket;
   private int port;
   private String serverAddr;
@@ -46,7 +46,7 @@ public class Spout extends BaseRichSpout {
     _collector = spoutOutputCollector;
     try {
       socket = new Socket(serverAddr , port);
-      oin = new ObjectInputStream(socket.getInputStream());
+      din = new DataInputStream(socket.getInputStream());
       System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
     } catch(IOException e) {
       e.printStackTrace();
@@ -56,11 +56,33 @@ public class Spout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     try {
-    String s = (String)(oin.readObject());
-    _collector.emit(new Values(s));
+      short s = din.readShort();
+      if(s == 0) {
+        double x = din.readDouble();
+        double y = din.readDouble();
+        short end = din.readShort();
 
+        if(end != -1) {
+          System.out.println("TT");
+        }
+        _collector.emit(new Values(x , y));
+      } else if(s == 1) {
+        double minX = din.readDouble();
+        double minY = din.readDouble();
+        double maxX = din.readDouble();
+        double maxY = din.readDouble();
+        short end = din.readShort();
+
+        if(end != -1) {
+          System.out.println("TT");
+        }
+        _collector.emit(new Values(minX , minY , maxX , maxY));
+      }
     }catch(Exception e){
       e.printStackTrace();
     }
   }
+
+
+
 }

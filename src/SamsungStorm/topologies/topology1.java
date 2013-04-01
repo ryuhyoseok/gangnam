@@ -48,22 +48,22 @@ public class topology1 {
 
     builder.setSpout( "Spout", new Spout(serverAddr , port), spoutNum );
 
-    builder.setBolt("parseBolt", new FeatureExtractionBolt( new String[]{} ,format.getInputSchema() , routing), featureNum ).shuffleGrouping("Spout");
-
-    builder.setBolt("routingboltA", new RoutingBolt(routing, routing[0], routingMap.get(routing[0])), 1).shuffleGrouping("parseBolt");
-    
-    builder.setBolt("routingboltB", new RoutingBolt(routing, routing[1], routingMap.get(routing[1])), 1).fieldsGrouping("routingboltA", new Fields(routing[0]));
-
-    builder.setBolt("routingboltE", new RoutingBolt(routing, routing[2], routingMap.get(routing[2])), 1).fieldsGrouping("routingboltB", new Fields(routing[1]));
-
-    builder.setBolt("QueryBolt", new QueryBolt(),1).fieldsGrouping("routingboltB", new Fields(routing[2]));
+//    builder.setBolt("parseBolt", new FeatureExtractionBolt( new String[]{} ,format.getInputSchema() , routing), featureNum ).shuffleGrouping("Spout");
+//
+//    builder.setBolt("routingboltA", new RoutingBolt(routing, routing[0], routingMap.get(routing[0])), 1).shuffleGrouping("parseBolt");
+//
+//    builder.setBolt("routingboltB", new RoutingBolt(routing, routing[1], routingMap.get(routing[1])), 1).fieldsGrouping("routingboltA", new Fields(routing[0]));
+//
+//    builder.setBolt("routingboltE", new RoutingBolt(routing, routing[2], routingMap.get(routing[2])), 1).fieldsGrouping("routingboltB", new Fields(routing[1]));
+//
+//    builder.setBolt("QueryBolt", new QueryBolt(),1).fieldsGrouping("routingboltB", new Fields(routing[2]));
 
     Config conf = new Config();
     conf.setDebug(false);
 
 
     if (!local) {
-      conf.setNumWorkers(3);
+      conf.setNumWorkers(1);
 
       StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     } else {

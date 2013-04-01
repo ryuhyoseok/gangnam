@@ -27,6 +27,7 @@ public class Spout extends BaseRichSpout {
   private Socket socket;
   private int port;
   private String serverAddr;
+    private DataInputStream din;
 
 
 
@@ -37,7 +38,8 @@ public class Spout extends BaseRichSpout {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-    outputFieldsDeclarer.declare(new Fields("xml"));
+    outputFieldsDeclarer.declare(new Fields("id","x","y","xml"));
+
   }
 
   @Override
@@ -56,16 +58,12 @@ public class Spout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     try {
-      short s = din.readShort();
-      if(s == 0) {
-        double x = din.readDouble();
-        double y = din.readDouble();
-        short end = din.readShort();
+        String s = (String)(oin.readObject());
+        long id = 0;
+        double x = 0;
+        double y = 0;
+        _collector.emit(new Values(id , x , y, s));
 
-        if(end != -1) {
-          System.out.println("TT");
-        }
-        _collector.emit(new Values(x , y));
       } else if(s == 1) {
         double minX = din.readDouble();
         double minY = din.readDouble();

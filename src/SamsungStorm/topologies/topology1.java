@@ -24,7 +24,7 @@ public class topology1 {
   public static void main(String[] args) throws Exception {
     if(args.length < 7) {
       System.out.println(" TOPOLOGY_NAME   SERVERADDR   PORT    SPOUTNUM    FEATURENUM    QUERYNUM  LOCAL");
-//      System.exit(0);
+      System.exit(0);
     }
 
     Format format = new Format();

@@ -18,14 +18,17 @@ import java.util.*;
 public class RoundRobinQueryBolt implements IRichBolt {
 
     OutputCollector collector;
-    Hashtable<Integer, String> QueryTable;
+    List<GridCellElement>[][] grid;
     int gridSize = 512;
-    public List<GridCellElement>[][] grid = new ArrayList[gridSize][gridSize];
 
+
+    public RoundRobinQueryBolt(int gridSize) {
+      this.gridSize = gridSize;
+      }
 
     public void prepare(Map stormConf, TopologyContext context,
                         OutputCollector collector) {
-        QueryTable = new Hashtable<Integer, String> ();
+        grid = new ArrayList[gridSize][gridSize];
         this.collector = collector;
 
     }
@@ -53,50 +56,63 @@ public class RoundRobinQueryBolt implements IRichBolt {
         */
 
         if(isPub == false){
-            int subId = input.getIntegerByField("query");
+            long subId = input.getLongByField("query");
             double min_x = input.getDoubleByField("minx");
             double min_y = input.getDoubleByField("miny");
             double max_x = input.getDoubleByField("maxx");
             double max_y = input.getDoubleByField("maxy");
+            String str  = input.getStringByField("xml");
 
+
+            System.out.println(subId + "==" + min_x + "==" + min_y + "==" + max_x + "==" + max_y);
 
             int gridMinX;
             int gridMinY;
             int gridMaxX;
             int gridMaxY;
 
-            GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y);
+            GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y, str);
 
             gridMinX = (int)min_x / gridSize;
             gridMinY = (int)min_y / gridSize;
             gridMaxX = (int)max_x / gridSize;
             gridMaxY = (int)max_y / gridSize;
 
+            System.out.println(gridMinX + "----" + gridMinY + "----" + gridMaxX + "----" + gridMaxY);
 
-            for(i = gridMinX; i == gridMaxX+1; i++){
-                for(j = gridMinY; j == gridMaxY+1; j++){
-                    if(grid[i][j] == null)
+
+            for(i = gridMinX; i < gridMaxX+1; i++){
+                for(j = gridMinY; j < gridMaxY+1; j++){
+                    if(grid[i][j] == null)  {
                         grid[i][j] = new ArrayList<GridCellElement>();
-
+                    }
                     grid[i][j].add(subscription);
+                    //System.out.println(i + ", " + j + ", " + grid[i][j].size());
                 }
             }
 
+            System.out.println();
             System.out.println("=========New Query is registered============");
             System.out.println("Query ID : " + subId + "  minx : " + min_x + "  miny : " + min_y + "  maxx : " + max_x + "  maxy : " + max_y);
-
         }
 
         else{
 
-            int pubId = input.getIntegerByField("query");
+            long pubId = input.getLongByField("query");
             double x = input.getDoubleByField("x");
-            double y = input.getIntegerByField("y");
+            double y = input.getDoubleByField("y");
+            String str = input.getStringByField("xml");
+
 
             int gridX = (int)x / gridSize;
             int gridY = (int)y / gridSize;
 
-            if(grid[gridX][gridY] == null){
+
+
+            System.out.println(x + "==" + y+ "==" + pubId + " , gridx : " +  gridX + " , " + gridY);
+
+
+          if(grid[gridX][gridY] == null){
                 System.out.println("===============Not Matched==================");
             }
 
@@ -105,7 +121,8 @@ public class RoundRobinQueryBolt implements IRichBolt {
 
                 while(iterator.hasNext()){
                     GridCellElement obj = iterator.next();
-                    if((obj.min_x <= x  && obj.max_x >= x) && (obj.min_y <= y && obj.min_y >= y)){
+
+                    if((obj.min_x <= x  && obj.max_x >= x) && (obj.min_y <= y && obj.max_y >= y)){
                         cnt++;
                         System.out.println("=================Matched=================");
                         System.out.println("Query ID : " + obj.sub_id + "  minx : " + obj.min_x + "  miny : " + obj.min_y + "  maxx : " + obj.max_x + "  maxy : " + obj.max_y);
@@ -114,7 +131,7 @@ public class RoundRobinQueryBolt implements IRichBolt {
                     }
                 }
                 if(cnt == 0){
-                    System.out.println("===============Not Matched==================");
+                    System.out.println("===============Not Matched cnt = 0==================");
                 }
 
             }

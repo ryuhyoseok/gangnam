@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 
 import SamsungStorm.Bolts.*;
+import SamsungStorm.Spouts.RRSubscriptionSpout;
+import SamsungStorm.Spouts.RoundRobinSpout;
 import SamsungStorm.Spouts.Spout;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -22,8 +24,8 @@ import backtype.storm.tuple.Fields;
 public class topology1 {
 
   public static void main(String[] args) throws Exception {
-    if(args.length < 7) {
-      System.out.println(" TOPOLOGY_NAME   SERVERADDR   PORT    SPOUTNUM    FEATURENUM    QUERYNUM  LOCAL");
+    if(args.length < 8) {
+      System.out.println("TOPOLOGY_NAME  SERVERADDR   PUBPORT  SUBPORT  SPOUTNUM   RRNUM  GRIDSIZE  WORKERNUN LOCAL");
       System.exit(0);
     }
 
@@ -33,41 +35,38 @@ public class topology1 {
 
     String topol = args[0];
     String serverAddr = args[1];
-    int port = Integer.parseInt(args[2]);
-    int spoutNum = Integer.parseInt(args[3]);
-    int featureNum = Integer.parseInt(args[4]);
-    int queryNum = Integer.parseInt(args[5]);
-    boolean local = Boolean.parseBoolean(args[6]);
+    int pubPort = Integer.parseInt(args[2]);
+    int subPort = Integer.parseInt(args[3]);
+    int spoutNum = Integer.parseInt(args[4]);
+    int rrNum = Integer.parseInt(args[5]);
+    int gridSize = Integer.parseInt(args[6]);
+    int workerNum = Integer.parseInt(args[7]);
+    boolean local = Boolean.parseBoolean(args[8]);
+    String[] rrs = new String[rrNum];
+    for(int i = 0 ; i < rrNum ; i ++) {
+      rrs[i] = String.valueOf(i);
+    }
     System.out.println(topol);
     System.out.println(serverAddr);
-    System.out.println(port);
-
+    System.out.println(pubPort);
+    System.out.println(subPort);
 
     TopologyBuilder builder = new TopologyBuilder();
 
-
-    builder.setSpout( "Spout", new Spout(serverAddr , port), spoutNum );
-
-//    builder.setBolt("parseBolt", new FeatureExtractionBolt( new String[]{} ,format.getInputSchema() , routing), featureNum ).shuffleGrouping("Spout");
-//
-//    builder.setBolt("routingboltA", new RoutingBolt(routing, routing[0], routingMap.get(routing[0])), 1).shuffleGrouping("parseBolt");
-//
-//    builder.setBolt("routingboltB", new RoutingBolt(routing, routing[1], routingMap.get(routing[1])), 1).fieldsGrouping("routingboltA", new Fields(routing[0]));
-//
-//    builder.setBolt("routingboltE", new RoutingBolt(routing, routing[2], routingMap.get(routing[2])), 1).fieldsGrouping("routingboltB", new Fields(routing[1]));
-//
-//    builder.setBolt("QueryBolt", new QueryBolt(),1).fieldsGrouping("routingboltB", new Fields(routing[2]));
+//    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort, rrs), spoutNum );
+    builder.setSpout( "rrsub", new RRSubscriptionSpout(serverAddr , subPort, rrs), spoutNum );
+    for(int i = 0 ; i < rrs.length ; i ++) {
+      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize)).allGrouping("rrsub");
+    }
 
     Config conf = new Config();
     conf.setDebug(false);
 
-
     if (!local) {
-      conf.setNumWorkers(1);
-
+      conf.setNumWorkers(workerNum);
       StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     } else {
-      conf.setMaxTaskParallelism(3);
+      conf.setMaxTaskParallelism(workerNum);
 
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("word-count", conf, builder.createTopology());

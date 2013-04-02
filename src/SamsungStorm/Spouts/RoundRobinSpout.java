@@ -6,12 +6,13 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,14 +21,18 @@ import java.util.Random;
  * Time: 오후 2:53
  * To change this template use File | Settings | File Templates.
  */
-public class Spout extends BaseRichSpout {
+public class RoundRobinSpout extends BaseRichSpout {
 
+  public static final String RR = "rr";
   private SpoutOutputCollector _collector;
-  private DataInputStream din;
+//  private DataInputStream din;
+  private BufferedReader reader;
   private Socket socket;
   private int port;
   private String serverAddr;
   private static final String str;
+  private String[] rrs;
+  private int counter;
 
   static {
     StringBuilder builder = new StringBuilder();
@@ -37,15 +42,18 @@ public class Spout extends BaseRichSpout {
     str = builder.toString();
   }
 
-  public Spout(String  addr , int port) {
+  public RoundRobinSpout(String addr, int port , String[] rrs) {
     this.serverAddr = addr;
     this.port = port;
+    this.rrs = rrs;
+    counter = 0;
   }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-    outputFieldsDeclarer.declare(new Fields("query","x","y","xml","isPub"));
-
+    for(int i = 0 ; i < rrs.length ; i ++) {
+      outputFieldsDeclarer.declareStream(rrs[i] , new Fields("query","x","y","xml","isPub"));
+    }
   }
 
   @Override
@@ -54,7 +62,8 @@ public class Spout extends BaseRichSpout {
     _collector = spoutOutputCollector;
     try {
       socket = new Socket(serverAddr , port);
-      din = new DataInputStream(socket.getInputStream());
+//      din = new DataInputStream(socket.getInputStream());
+      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
     } catch(IOException e) {
       e.printStackTrace();
@@ -64,18 +73,25 @@ public class Spout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     try {
-      short pubFlag = din.readShort();
+      String[] strs = reader.readLine().split(",");
+      short pubFlag = Short.parseShort(strs[0]);
+      long id = Long.parseLong(strs[1]);
+      double x = Double.parseDouble(strs[2]);
+      double y = Double.parseDouble(strs[3]);
+      short endFlag = Short.parseShort(strs[4]);
       if(pubFlag != 0) {
         throw new Exception("wrong data input!  pubflag = " + pubFlag);
       }
-      long id = din.readShort();
-      double x = din.readShort();
-      double y = din.readShort();
-      short endFlag = din.readShort();
       if(endFlag != -1) {
-        throw new Exception("wrong data end! endFlag = " + endFlag);
+        throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
-      _collector.emit(new Values(id , x , y, str,true));
+      System.out.println("streamID : " + rrs[counter%rrs.length]);
+      _collector.emit(rrs[counter%rrs.length] ,new Values(id , x , y, str,true ));
+      if(counter == rrs.length -1) {
+        counter = 0;
+      }else {
+        counter ++;
+      }
 
     }catch(Exception e){
       e.printStackTrace();

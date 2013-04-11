@@ -25,7 +25,7 @@ public class RoundRobinSpout extends BaseRichSpout {
 
   public static final String RR = "rr";
   private SpoutOutputCollector _collector;
-//  private DataInputStream din;
+  private DataInputStream din;
   private BufferedReader reader;
   private Socket socket;
   private int port;
@@ -58,12 +58,12 @@ public class RoundRobinSpout extends BaseRichSpout {
 
   @Override
   public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-    System.out.println("Connection START");
+    System.out.println("Connection START : " + getClass().getName());
     _collector = spoutOutputCollector;
     try {
       socket = new Socket(serverAddr , port);
-//      din = new DataInputStream(socket.getInputStream());
-      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      din = new DataInputStream(socket.getInputStream());
+//      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
     } catch(IOException e) {
       e.printStackTrace();
@@ -73,19 +73,24 @@ public class RoundRobinSpout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     try {
-      String[] strs = reader.readLine().split(",");
-      short pubFlag = Short.parseShort(strs[0]);
-      long id = Long.parseLong(strs[1]);
-      double x = Double.parseDouble(strs[2]);
-      double y = Double.parseDouble(strs[3]);
-      short endFlag = Short.parseShort(strs[4]);
+//      String[] strs = reader.readLine().split(",");
+//      short pubFlag = Short.parseShort(strs[0]);
+//      long id = Long.parseLong(strs[1]);
+//      double x = Double.parseDouble(strs[2]);
+//      double y = Double.parseDouble(strs[3]);
+//      short endFlag = Short.parseShort(strs[4]);
+      short pubFlag = din.readShort();
+      long id = din.readLong();
+      double x = din.readDouble();
+      double y = din.readDouble();
+      short endFlag = din.readShort();
+
       if(pubFlag != 0) {
         throw new Exception("wrong data input!  pubflag = " + pubFlag);
       }
       if(endFlag != -1) {
         throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
-      System.out.println("streamID : " + rrs[counter%rrs.length]);
       _collector.emit(rrs[counter%rrs.length] ,new Values(id , x , y, str,true ));
       if(counter == rrs.length -1) {
         counter = 0;

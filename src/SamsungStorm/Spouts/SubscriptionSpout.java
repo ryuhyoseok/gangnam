@@ -7,9 +7,7 @@ import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 
@@ -23,6 +21,7 @@ import java.util.Map;
 public class SubscriptionSpout extends BaseRichSpout {
 
     private SpoutOutputCollector _collector;
+//    private BufferedReader reader;
     private DataInputStream din;
     private Socket socket;
     private int port;
@@ -52,6 +51,7 @@ public class SubscriptionSpout extends BaseRichSpout {
       _collector = spoutOutputCollector;
       try {
         socket = new Socket(serverAddr , port);
+//        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         din = new DataInputStream(socket.getInputStream());
         System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
       } catch(IOException e) {
@@ -62,18 +62,27 @@ public class SubscriptionSpout extends BaseRichSpout {
     @Override
     public void nextTuple() {
         try {
+
+//          String[] strs = reader.readLine().split(",");
+//          short pubFlag = Short.parseShort(strs[0]);
+//          long id = Long.parseLong(strs[1]);
+//          double minX = Double.parseDouble(strs[2]);
+//          double minY = Double.parseDouble(strs[3]);
+//          double maxX = Double.parseDouble(strs[4]);
+//          double maxY = Double.parseDouble(strs[5]);
+//          short endFlag = Short.parseShort(strs[6]);
           short pubFlag = din.readShort();
-          if(pubFlag != 0) {
+          long id = din.readLong();
+          double minX = din.readDouble();
+          double minY = din.readDouble();
+          double maxX = din.readDouble();
+          double maxY = din.readDouble();
+          short endFlag = din.readShort();
+          if(pubFlag != 1) {
             throw new Exception("wrong data input!  pubflag = " + pubFlag);
           }
-          long id = din.readShort();
-          double minX = din.readShort();
-          double minY = din.readShort();
-          double maxX = din.readShort();
-          double maxY = din.readShort();
-          short endFlag = din.readShort();
           if(endFlag != -1) {
-            throw new Exception("wrong data end! endFlag = " + endFlag);
+            throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
           }
           _collector.emit(new Values(id , minX , minY, maxX , maxY, str , false));
 

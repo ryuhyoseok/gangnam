@@ -22,6 +22,7 @@ import java.util.Random;
  */
 public class Spout extends BaseRichSpout {
 
+//  private BufferedReader reader;
   private SpoutOutputCollector _collector;
   private DataInputStream din;
   private Socket socket;
@@ -54,6 +55,7 @@ public class Spout extends BaseRichSpout {
     _collector = spoutOutputCollector;
     try {
       socket = new Socket(serverAddr , port);
+//      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       din = new DataInputStream(socket.getInputStream());
       System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
     } catch(IOException e) {
@@ -64,17 +66,25 @@ public class Spout extends BaseRichSpout {
   @Override
   public void nextTuple() {
     try {
+//      String[] strs = reader.readLine().split(",");
+//      short pubFlag = Short.parseShort(strs[0]);
+//      long id = Long.parseLong(strs[1]);
+//      double x = Double.parseDouble(strs[2]);
+//      double y = Double.parseDouble(strs[3]);
+//      short endFlag = Short.parseShort(strs[4]);
       short pubFlag = din.readShort();
+      long id = din.readLong();
+      double x = din.readDouble();
+      double y = din.readDouble();
+      short endFlag = din.readShort();
+
       if(pubFlag != 0) {
         throw new Exception("wrong data input!  pubflag = " + pubFlag);
       }
-      long id = din.readShort();
-      double x = din.readShort();
-      double y = din.readShort();
-      short endFlag = din.readShort();
       if(endFlag != -1) {
-        throw new Exception("wrong data end! endFlag = " + endFlag);
+        throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
+      System.out.println("PUBBBBB : " + id + " , " + x + " , " + y );
       _collector.emit(new Values(id , x , y, str,true));
 
     }catch(Exception e){

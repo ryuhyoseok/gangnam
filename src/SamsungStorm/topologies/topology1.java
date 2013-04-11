@@ -7,6 +7,7 @@ import SamsungStorm.Bolts.*;
 import SamsungStorm.Spouts.RRSubscriptionSpout;
 import SamsungStorm.Spouts.RoundRobinSpout;
 import SamsungStorm.Spouts.Spout;
+import SamsungStorm.Spouts.SubscriptionSpout;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -53,10 +54,10 @@ public class topology1 {
 
     TopologyBuilder builder = new TopologyBuilder();
 
-//    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort, rrs), spoutNum );
-    builder.setSpout( "rrsub", new RRSubscriptionSpout(serverAddr , subPort, rrs), spoutNum );
+    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort, rrs ), spoutNum );
+    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort), spoutNum );
     for(int i = 0 ; i < rrs.length ; i ++) {
-      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize)).allGrouping("rrsub");
+      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).globalGrouping("rrsub");
     }
 
     Config conf = new Config();

@@ -24,8 +24,8 @@ import java.util.Map;
 public class RRSubscriptionSpout extends BaseRichSpout {
 
     private SpoutOutputCollector _collector;
-//    private DataInputStream din;
-private BufferedReader reader;
+    private DataInputStream din;
+//    private BufferedReader reader;
     private Socket socket;
     private int port;
     private String serverAddr;
@@ -49,17 +49,19 @@ private BufferedReader reader;
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("query" , "minx" , "miny" , "maxx" , "maxy" , "xml" ,"isPub"));
+      for(int i = 0 ; i < rrs.length ; i ++) {
+        outputFieldsDeclarer.declareStream(rrs[i],new Fields("query" , "minx" , "miny" , "maxx" , "maxy" , "xml" ,"isPub"));
+      }
     }
 
     @Override
     public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-      System.out.println("Connection START");
+      System.out.println("Connection START :" +  getClass().getName());
       _collector = spoutOutputCollector;
       try {
         socket = new Socket(serverAddr , port);
-//        din = new DataInputStream(socket.getInputStream());
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        din = new DataInputStream(socket.getInputStream());
+//        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
       } catch(IOException e) {
         e.printStackTrace();
@@ -69,14 +71,23 @@ private BufferedReader reader;
     @Override
     public void nextTuple() {
         try {
-          String[] strs = reader.readLine().split(",");
-          short pubFlag = Short.parseShort(strs[0]);
-          long id = Long.parseLong(strs[1]);
-          double minX = Double.parseDouble(strs[2]);
-          double minY = Double.parseDouble(strs[3]);
-          double maxX = Double.parseDouble(strs[4]);
-          double maxY = Double.parseDouble(strs[5]);
-          short endFlag = Short.parseShort(strs[6]);
+//          String[] strs = reader.readLine().split(",");
+//          short pubFlag = Short.parseShort(strs[0]);
+//          long id = Long.parseLong(strs[1]);
+//          double minX = Double.parseDouble(strs[2]);
+//          double minY = Double.parseDouble(strs[3]);
+//          double maxX = Double.parseDouble(strs[4]);
+//          double maxY = Double.parseDouble(strs[5]);
+//          short endFlag = Short.parseShort(strs[6]);
+
+          short pubFlag = din.readShort();
+          long id = din.readLong();
+          double minX = din.readDouble();
+          double minY = din.readDouble();
+          double maxX = din.readDouble();
+          double maxY = din.readDouble();
+          short endFlag = din.readShort();
+
           if(pubFlag != 1) {
             throw new Exception("wrong data input!  subflag = " + pubFlag);
           }
@@ -84,9 +95,9 @@ private BufferedReader reader;
             throw new Exception("wrong data end! end(sub)Flag = " + endFlag);
           }
 
-          _collector.emit(new Values(id ,minX , minY, maxX , maxY, str,false ));
-
-          if(counter == rrs.length) {
+//          _collector.emit(new Values(id ,minX , minY, maxX , maxY, str,false ));
+          _collector.emit(rrs[counter%rrs.length] ,new Values(id , minX , minY, maxX, maxY, str,false ));
+          if(counter == rrs.length -1) {
             counter = 0;
           }else {
             counter ++;

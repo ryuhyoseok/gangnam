@@ -18,7 +18,7 @@ import java.util.*;
 public class SpacePartitioningQueryBolt implements IRichBolt {
 
     OutputCollector collector;
-    HashMap<Integer, List> gridIndex;
+    HashMap<Integer, List<GridCellElement>> gridIndex;
     List<GridCellElement> hilbert;
 
     int gridSize;
@@ -33,6 +33,7 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
     public void prepare(Map stormConf, TopologyContext context,
                         OutputCollector collector) {
 
+        this.gridIndex = new HashMap<Integer, List<GridCellElement>>();
         this.collector = collector;
 
     }
@@ -74,22 +75,26 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
             GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y, str);
 
             if(!gridIndex.containsKey(gridCellNum)){
-                List<GridCellElement> query = new ArrayList();
+                List<GridCellElement> query = new ArrayList<GridCellElement>();
                 query.add(subscription);
                 gridIndex.put(gridCellNum, query);
+                System.out.println("New Query is coming!! "+ gridCellNum + " ID : " + gridIndex.get(gridCellNum).get(0).sub_id);
 
             }
 
             else{
                 gridIndex.get(gridCellNum).add(subscription);
+                System.out.println("QueryQueryQuery " + gridCellNum + "ID : " + gridIndex.get(gridCellNum).get(1).sub_id);
             }
 
 
 
-
+            /*
             System.out.println();
             System.out.println("=========New Query is registered============");
             System.out.println("Query ID : " + subId + "  minx : " + min_x + "  miny : " + min_y + "  maxx : " + max_x + "  maxy : " + max_y);
+            */
+
         }
 
         else{

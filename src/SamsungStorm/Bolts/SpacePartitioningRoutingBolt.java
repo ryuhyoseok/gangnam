@@ -194,12 +194,12 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             }
         }
 
-        for(i=0;i<100;i++){
-            System.out.println(i + "============" + i + "%%%%%%%%%%%%%%%%%%%%%%%%%%%" + hilbertHash.get(i) + "***************");
-        }
-        for(i=20000;i<20100;i++){
-            System.out.println(i + "============" + i + "%%%%%%%%%%%%%%%%%%%%%%%%%%%" + hilbertHash.get(i) + "***************");
-        }
+//        for(i=0;i<100;i++){
+//            System.out.println(i + "============" + i + "%%%%%%%%%%%%%%%%%%%%%%%%%%%" + hilbertHash.get(i) + "***************");
+//        }
+//        for(i=20000;i<20100;i++){
+//            System.out.println(i + "============" + i + "%%%%%%%%%%%%%%%%%%%%%%%%%%%" + hilbertHash.get(i) + "***************");
+//        }
 
 
         this.collector = collector;
@@ -216,20 +216,6 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
         int gridCellNum;
         int nodeNum=0;
 
-        /*
-        int subId = input.getIntegerByField("query");
-        double x = input.getDoubleByField("x");
-        double y = input.getDoubleByField("y");
-
-        int gridX;
-        int gridY;
-
-        GridCellElement subscription = new GridCellElement(subId, x, y);
-
-        gridX = (int)x / gridSize;
-        gridY = (int)y / gridSize;
-        */
-
         if(isPub == false){
             long subId = input.getLongByField("query");
             double min_x = input.getDoubleByField("minx");
@@ -237,9 +223,6 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             double max_x = input.getDoubleByField("maxx");
             double max_y = input.getDoubleByField("maxy");
             String str  = input.getStringByField("xml");
-
-
-            System.out.println(subId + "==" + min_x + "==" + min_y + "==" + max_x + "==" + max_y);
 
             int gridMinX;
             int gridMinY;
@@ -253,15 +236,14 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             gridMaxX = (int)max_x / gridSize;
             gridMaxY = (int)max_y / gridSize;
 
-            System.out.println(gridMinX + "----" + gridMinY + "----" + gridMaxX + "----" + gridMaxY);
-
-
             for(i = gridMinX; i < gridMaxX+1; i++){
                 for(j = gridMinY; j < gridMaxY+1; j++){
                     gridCellNum = i + gridSize*j;
                     nodeNum = hilbertHash.get(gridCellNum);
                     Values val = new Values();
                     val.add(subId);
+                    val.add(0);
+                    val.add(1);
                     val.add(min_x);
                     val.add(min_y);
                     val.add(max_x);
@@ -270,15 +252,10 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                     val.add(isPub);
                     val.add(nodeNum);
                     val.add(gridCellNum);
-                    //System.out.println("gridcellnum : " + gridCellNum + ", " + "nodeNum : " + nodeNum);
-                    collector.emit("sub", val);
+                    collector.emit( val);
 
                 }
             }
-
-//            System.out.println();
-            //System.out.println("=========New Query is registered============");
-            //System.out.println("Query ID : " + subId + "  minx : " + min_x + "  miny : " + min_y + " maxx : " + max_x + "  maxy : " + max_y);
 
         }
 
@@ -298,7 +275,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
 
 
-            System.out.println(x + "==" + y+ "==" + pubId + " , grid : " +  gridX + " , " + gridY + "gridcellNum : " + gridCellNum);
+//            System.out.println(x + "==" + y+ "==" + pubId + " , grid : " +  gridX + " , " + gridY + "gridcellNum : " + gridCellNum);
 
 
             nodeNum = hilbertHash.get(gridCellNum);
@@ -333,11 +310,15 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             val.add(pubId);
             val.add(x);
             val.add(y);
+            val.add(-1.0);
+            val.add(-1.0);
+            val.add(-1.0);
+            val.add(-1.0);
             val.add(str);
             val.add(isPub);
             val.add(nodeNum);
             val.add(gridCellNum);
-            collector.emit("pub", val);
+            collector.emit(val);
 
         }
 
@@ -351,8 +332,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("pub" , new Fields("query" , "x" , "y" ,  "xml" , "isPub" , "node" , "gridcell"));
-        declarer.declareStream("sub" , new Fields("query" , "minx" , "miny" , "maxx" , "maxy" , "xml" , "isPub" , "node" , "gridcell"));
+        declarer.declare( new Fields("query" , "x" , "y", "minx" , "miny" , "maxx" , "maxy" , "xml" , "isPub" , "node" , "gridcell"));
     }
 
 

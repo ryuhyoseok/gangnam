@@ -40,7 +40,7 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
 
     public void execute(Tuple input) {
-
+        System.out.println(input);
 
         boolean isPub = input.getBooleanByField("isPub");
         int i,j;
@@ -78,13 +78,13 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
                 List<GridCellElement> query = new ArrayList<GridCellElement>();
                 query.add(subscription);
                 gridIndex.put(gridCellNum, query);
-                System.out.println("New Query is coming!! "+ gridCellNum + " ID : " + gridIndex.get(gridCellNum).get(0).sub_id);
+//                System.out.println("New Query is coming!! "+ gridCellNum + " ID : " + gridIndex.get(gridCellNum).get(0).sub_id);
 
             }
 
             else{
                 gridIndex.get(gridCellNum).add(subscription);
-                System.out.println("QueryQueryQuery " + gridCellNum + "ID : " + gridIndex.get(gridCellNum).get(1).sub_id);
+//                System.out.println("QueryQueryQuery " + gridCellNum + "ID : " + gridIndex.get(gridCellNum).get(1).sub_id);
             }
 
 
@@ -108,7 +108,7 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
 
             if(!gridIndex.containsKey(gridCellNum)){
-                System.out.println("===============Not Matched==================");
+//                System.out.println("===============Not Matched==================");
             }
 
             else{
@@ -121,16 +121,16 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
                     if((obj.min_x <= x  && obj.max_x >= x) && (obj.min_y <= y && obj.max_y >= y)){
                         cnt++;
-                        System.out.println("=================Matched=================");
-                        System.out.println("Query ID : " + obj.sub_id + "  minx : " + obj.min_x + "  miny : " + obj.min_y + "  maxx : " + obj.max_x + "  maxy : " + obj.max_y);
-                        System.out.println("Publish ID : " + pubId + "  x : " + x + "  y : " + y);
-                        System.out.println("=========================================");
+//                        System.out.println("=================Matched=================");
+//                        System.out.println("Query ID : " + obj.sub_id + "  minx : " + obj.min_x + "  miny : " + obj.min_y + "  maxx : " + obj.max_x + "  maxy : " + obj.max_y);
+//                        System.out.println("Publish ID : " + pubId + "  x : " + x + "  y : " + y);
+//                        System.out.println("=========================================");
                     }
                 }
             }
 
             if(cnt == 0){
-                System.out.println("===============Not Matched cnt = 0==================");
+//                System.out.println("===============Not Matched cnt = 0==================");
             }
 
             /*

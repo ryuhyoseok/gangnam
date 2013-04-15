@@ -8,7 +8,10 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,7 +20,7 @@ import java.util.*;
  * Time: 오후 7:40
  * To change this template use File | Settings | File Templates.
  */
-public class SpacePartitioningRoutingBolt implements IRichBolt {
+public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
 
     OutputCollector collector;
     List<GridCellElement>[][] grid;
@@ -26,7 +29,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
     int cluster;
 
 
-    public SpacePartitioningRoutingBolt (int gridSize, int cluster) {
+    public FourthSpacePartitioningRoutingBolt(int gridSize, int cluster) {
         this.gridSize = gridSize;
         this.cluster = cluster;
     }

@@ -54,6 +54,7 @@ public class topology1 {
     TopologyBuilder builder = new TopologyBuilder();
 
     builder.setSpout( "rrpub", new Spout(serverAddr , pubPort ), spoutNum );
+      //builder.setSpout( "rrpub", new Spout(serverAddr , pubPort, nodeNum ), spoutNum );
     builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort ), spoutNum );
     builder.setBolt("spr" , new SpacePartitioningRoutingBolt(gridSize , rrNum) , 1).allGrouping("rrpub").allGrouping("rrsub");
     builder.setBolt("spq" , new SpacePartitioningQueryBolt(gridSize) , rrNum).fieldsGrouping("spr" , "pub" , new Fields("node")).fieldsGrouping("spr" , "sub" , new Fields("node"));

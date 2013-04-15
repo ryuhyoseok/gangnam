@@ -215,6 +215,8 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
         int cnt = 0;
         int gridCellNum;
         int nodeNum=0;
+        int count = 0;
+        int preNodeNum = 99999999;
 
         if(isPub == false){
             long subId = input.getLongByField("query");
@@ -252,7 +254,10 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                     val.add(isPub);
                     val.add(nodeNum);
                     val.add(gridCellNum);
-                    collector.emit( val);
+                    if(preNodeNum != nodeNum){
+                        collector.emit( val);
+                        preNodeNum = nodeNum;
+                    }
 
                 }
             }

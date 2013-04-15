@@ -33,7 +33,6 @@ public class topology1 {
     Format format = new Format();
     HashMap<String , String[]> routingMap = format.getRoutingSchema() ;
     String[] routing = routingMap.keySet().toArray(new String[0]);
-
     String topol = args[0];
     String serverAddr = args[1];
     int pubPort = Integer.parseInt(args[2]);
@@ -54,10 +53,10 @@ public class topology1 {
 
     TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort, rrs ), spoutNum );
-    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort), spoutNum );
+    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort , rrs), spoutNum );
+    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort ), spoutNum );
     for(int i = 0 ; i < rrs.length ; i ++) {
-      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).globalGrouping("rrsub");
+      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).allGrouping("rrsub");
     }
 
     Config conf = new Config();

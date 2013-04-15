@@ -53,11 +53,13 @@ public class topology1 {
 
     TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort , rrs), spoutNum );
+    builder.setSpout( "rrpub", new Spout(serverAddr , pubPort ), spoutNum );
     builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort ), spoutNum );
-    for(int i = 0 ; i < rrs.length ; i ++) {
-      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).allGrouping("rrsub");
-    }
+    builder.setBolt("spr" , new SpacePartitioningRoutingBolt(gridSize , rrNum) , 1).allGrouping("rrpub").allGrouping("rrsub");
+    builder.setBolt("spq" , new SpacePartitioningQueryBolt(gridSize) , rrNum).fieldsGrouping("spr" , "pub" , new Fields("node")).fieldsGrouping("spr" , "sub" , new Fields("node"));
+//    for(int i = 0 ; i < rrs.length ; i ++) {
+//      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).allGrouping("rrsub");
+//    }
 
     Config conf = new Config();
     conf.setDebug(false);

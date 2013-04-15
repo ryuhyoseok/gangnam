@@ -33,7 +33,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
     public void prepare(Map stormConf, TopologyContext context,
                         OutputCollector collector) {
-
+        System.out.println(getClass().getName() + " PREPARE START");
         int i;
         char flag = 'a';
         char curflag = 'a';
@@ -56,8 +56,10 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
         hilbertHash = new HashMap<Integer, Integer>(gridSumSize);
 
-        while(tmp != 1){
-            tmp = gridSize / 2;
+        int tmpGrid = gridSize;
+        while(tmp >= 1){
+            tmp = tmpGrid / 2;
+            tmpGrid = tmpGrid/2;
             level++;
         }
 
@@ -180,9 +182,8 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
                             }
                             break;
-
-                    }
-
+                      }
+                  level --;
                 }
                 nodeNum = (hilbertIndex+1) / nodeSize;
                 if(nodeNum == cluster){
@@ -264,7 +265,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                 }
             }
 
-            System.out.println();
+//            System.out.println();
             System.out.println("=========New Query is registered============");
             System.out.println("Query ID : " + subId + "  minx : " + min_x + "  miny : " + min_y + "  maxx : " + max_x + "  maxy : " + max_y);
 
@@ -330,10 +331,8 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
-        declarer.declare(new Fields("node"));
-        declarer.declare(new Fields("gridcell"));
-
+        declarer.declareStream("pub" , new Fields("query" , "x" , "y" ,  "xml" , "isPub" , "node" , "gridcell"));
+        declarer.declareStream("sub" , new Fields("query" , "minx" , "miny" , "maxx" , "maxy" , "xml" , "isPub" , "node" , "gridcell"));
     }
 
 

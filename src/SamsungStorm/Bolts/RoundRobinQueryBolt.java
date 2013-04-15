@@ -40,7 +40,7 @@ public class RoundRobinQueryBolt implements IRichBolt {
 //
   @Override
   public void execute(Tuple tuple) {
-
+    System.out.println("tupleInformations : " + tuple );
     boolean isPub = tuple.getBooleanByField("isPub");
     int i,j;
     int cnt = 0;

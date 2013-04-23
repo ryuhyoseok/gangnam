@@ -85,7 +85,7 @@ public class Spout extends BaseRichSpout {
         throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
 //      System.out.println("PUBBBBB : " + id + " , " + x + " , " + y );
-      _collector.emit(new Values(id , x , y, str,true));
+      _collector.emit(new Values(id , x , y, str,true) , id);
 
     }catch(Exception e){
       e.printStackTrace();

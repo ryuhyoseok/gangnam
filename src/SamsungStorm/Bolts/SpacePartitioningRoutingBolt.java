@@ -45,6 +45,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
         int key;
         int nodeNum;
         int nodeSize;
+        int tmplevel;
 
         int level = 0;
         int tmp = 100;
@@ -62,25 +63,30 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             tmpGrid = tmpGrid/2;
             level++;
         }
+        tmplevel = level;
 
-        for(x = 0; x<gridSize; x++){
-            for(y=0; y<gridSize; y++){
+        System.out.println("level : " + level);
+        for(y = 0; y<gridSize; y++){
+            for(x=0; x<gridSize; x++){
                 key = x + gridSize*y;
                 hilbertIndex = 0;
                 cur_x = 0;
                 cur_y = 0;
+                level = tmplevel;
                 while(level != 0){
+//                  System.out.println("================0");
                     switch (curflag){
                         case 'a' :
                             if (x < cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'b';
-
+//                                System.out.println("================1");
                             }
 
                             else if (x < cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
                                 curflag = 'a';
                                 cur_y = cur_y + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (1*(int)Math.pow(4, level-1));
+//                              System.out.println("================2");
                             }
 
                             else if (x >= cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
@@ -88,27 +94,28 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                                 cur_x = cur_x + (int)Math.pow(2, level-1);
                                 cur_y = cur_y + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (2*(int)Math.pow(4, level-1));
-
+//                              System.out.println("================3");
                             }
 
                             else if (x >= cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'd';
                                 cur_x = cur_x + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (3*(int)Math.pow(4, level-1));
-
+//                              System.out.println("================4");
                             }
                             break;
 
                         case 'b' :
                             if (x < cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'a';
-
+//                              System.out.println("================5");
                             }
 
                             else if (x < cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
                                 curflag = 'd';
                                 cur_y = cur_y + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (1*(int)Math.pow(4, level-1));
+//                              System.out.println("================6");
                             }
 
                             else if (x >= cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
@@ -116,21 +123,21 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                                 cur_x = cur_x + (int)Math.pow(2, level-1);
                                 cur_y = cur_y + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (2*(int)Math.pow(4, level-1));
-
+//                              System.out.println("================7");
                             }
 
                             else if (x >= cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'b';
                                 cur_x = cur_x + (int)Math.pow(2, level-1);
                                 hilbertIndex = hilbertIndex + (3*(int)Math.pow(4, level-1));
-
+//                              System.out.println("================8");
                             }
                             break;
 
                         case 'c' :
                             if (x < cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'c';
-
+//                              System.out.println("================9");
                             }
 
                             else if (x < cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
@@ -158,7 +165,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                         case 'd' :
                             if (x < cur_x + Math.pow(2, level-1) && y < cur_y + Math.pow(2, level-1)){
                                 curflag = 'd';
-
+//                              System.out.println("================10");
                             }
 
                             else if (x < cur_x + Math.pow(2, level-1) && y >= cur_y + Math.pow(2, level-1)){
@@ -190,6 +197,7 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                     nodeNum = nodeNum-1;
                 }
                 hilbertHash.put(key, nodeNum);
+//              System.out.println(key + " ,,," + nodeNum + ",,," + hilbertIndex);
 
             }
         }
@@ -233,14 +241,22 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
 
             GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y, str);
 
-            gridMinX = (int)min_x / gridSize;
-            gridMinY = (int)min_y / gridSize;
-            gridMaxX = (int)max_x / gridSize;
-            gridMaxY = (int)max_y / gridSize;
+//            gridMinX = (int)min_x / gridSize;
+//            gridMinY = (int)min_y / gridSize;
+//            gridMaxX = (int)max_x / gridSize;
+//            gridMaxY = (int)max_y / gridSize;
+
+          gridMinX = (int)min_x / 200;
+          gridMinY = (int)min_y / 200;
+          gridMaxX = (int)max_x / 200;
+          gridMaxY = (int)max_y / 200;
 
             for(i = gridMinX; i < gridMaxX+1; i++){
                 for(j = gridMinY; j < gridMaxY+1; j++){
                     gridCellNum = i + gridSize*j;
+//                    System.out.println(min_x + " , " + min_y + " , " + max_x +" , " + max_y);
+//                    System.out.println(i + " , " + j);
+//                    System.out.println( gridCellNum + " , " + nodeNum );
                     nodeNum = hilbertHash.get(gridCellNum);
                     Values val = new Values();
                     val.add(subId);
@@ -254,8 +270,9 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
                     val.add(isPub);
                     val.add(nodeNum);
                     val.add(gridCellNum);
+
                     if(preNodeNum != nodeNum){
-                        collector.emit( val);
+                        collector.emit(input, val);
                         preNodeNum = nodeNum;
                     }
 
@@ -273,8 +290,11 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             String str = input.getStringByField("xml");
 
 
-            int gridX = (int)x / gridSize;
-            int gridY = (int)y / gridSize;
+//            int gridX = (int)x / gridSize;
+//            int gridY = (int)y / gridSize;
+
+          int gridX = (int)x / 200;
+          int gridY = (int)y / 200;
 
             gridCellNum = gridX + gridSize*gridY;
 
@@ -323,7 +343,8 @@ public class SpacePartitioningRoutingBolt implements IRichBolt {
             val.add(isPub);
             val.add(nodeNum);
             val.add(gridCellNum);
-            collector.emit(val);
+//          System.out.println(nodeNum);
+          collector.emit(input, val);
 
         }
 

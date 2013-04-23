@@ -6,8 +6,10 @@ import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
+import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
 
 import java.util.*;
 
@@ -18,7 +20,7 @@ import java.util.*;
  * Time: 오후 7:40
  * To change this template use File | Settings | File Templates.
  */
-public class RoundRobinQueryBolt implements IRichBolt {
+public class RoundRobinQueryBolt extends BaseRichBolt {
 
     OutputCollector collector;
     List<GridCellElement>[][] grid;
@@ -142,6 +144,7 @@ public class RoundRobinQueryBolt implements IRichBolt {
       }
     }
 
+    collector.emit(tuple, new Values(""));
     //
   }
 

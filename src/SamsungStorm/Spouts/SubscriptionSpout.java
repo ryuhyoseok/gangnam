@@ -27,6 +27,7 @@ public class SubscriptionSpout extends BaseRichSpout {
     private int port;
     private String serverAddr;
     private static final String str;
+
     static {
       StringBuilder builder = new StringBuilder();
       for(int i = 0 ; i < 1024 ; i ++ ) {
@@ -84,7 +85,7 @@ public class SubscriptionSpout extends BaseRichSpout {
           if(endFlag != -1) {
             throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
           }
-          _collector.emit(new Values(id , minX , minY, maxX , maxY, str , false));
+          _collector.emit(new Values(id , minX , minY, maxX , maxY, str , false) );
 
         }catch(Exception e){
             e.printStackTrace();

@@ -33,6 +33,7 @@ public class RoundRobinSpout extends BaseRichSpout {
   private static final String str;
   private String[] rrs;
   private int counter;
+  private long msgId = 0;
 
   static {
     StringBuilder builder = new StringBuilder();
@@ -91,7 +92,7 @@ public class RoundRobinSpout extends BaseRichSpout {
       if(endFlag != -1) {
         throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
-      _collector.emit(rrs[counter%rrs.length] ,new Values(id , x , y, str,true ));
+      _collector.emit(rrs[counter%rrs.length] ,new Values(id , x , y, str,true ) , msgId ++);
       if(counter == rrs.length -1) {
         counter = 0;
       }else {

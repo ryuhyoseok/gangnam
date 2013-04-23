@@ -27,11 +27,17 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
     HashMap<Integer, Integer> hilbertHash;
     int gridSize = 512;
     int cluster;
+    int workLoadSum;
+    int perNode;
+    int tmpSum = 0;
+    int tmpcnt = 0;
+    int tmpNodeNum = 0;
 
 
     public FourthSpacePartitioningRoutingBolt(int gridSize, int cluster) {
         this.gridSize = gridSize;
         this.cluster = cluster;
+
     }
 
     public void prepare(Map stormConf, TopologyContext context,
@@ -232,9 +238,37 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
         gridX = (int)x / gridSize;
         gridY = (int)y / gridSize;
         */
+        int id = input.getIntegerByField("query");
+
+        if(id == -2){
+            workLoadSum = input.getIntegerByField("minx");
+            perNode = input.getIntegerByField("miny");
+        }
+
+        else if(id == -3){
+            tmpSum = tmpSum + input.getIntegerByField("miny");
+            if(tmpSum >= perNode){
+                tmpSum = 0;
+                if(tmpcnt == cluster){
+                    for(int n = tmpNodeNum; n < gridSize*gridSize; n++){
+                        hilbertHash.put(n, tmpcnt-1);
+                    }
+                    tmpcnt++;
+                }
+                else if (tmpcnt < cluster){
+                    for(int m = tmpNodeNum; m < input.getIntegerByField("minx"); m++){
+                        hilbertHash.put(m, tmpcnt);
+                    }
+                    tmpNodeNum = input.getIntegerByField("minx");
+                    tmpcnt++;
+                }
+
+            }
+
+        }
 
         if(isPub == false){
-            long subId = input.getLongByField("query");
+//          long subId = input.getLongByField("query");
             double min_x = input.getDoubleByField("minx");
             double min_y = input.getDoubleByField("miny");
             double max_x = input.getDoubleByField("maxx");
@@ -242,14 +276,14 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
             String str  = input.getStringByField("xml");
 
 
-            System.out.println(subId + "==" + min_x + "==" + min_y + "==" + max_x + "==" + max_y);
+            System.out.println(id + "==" + min_x + "==" + min_y + "==" + max_x + "==" + max_y);
 
             int gridMinX;
             int gridMinY;
             int gridMaxX;
             int gridMaxY;
 
-            GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y, str);
+            GridCellElement subscription = new GridCellElement(id, min_x, min_y, max_x, max_y, str);
 
             gridMinX = (int)min_x / gridSize;
             gridMinY = (int)min_y / gridSize;
@@ -264,7 +298,7 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
                     gridCellNum = i + gridSize*j;
                     nodeNum = hilbertHash.get(gridCellNum);
                     Values val = new Values();
-                    val.add(subId);
+                    val.add(id);
                     val.add(min_x);
                     val.add(min_y);
                     val.add(max_x);
@@ -287,7 +321,7 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
 
         else{
 
-            long pubId = input.getLongByField("query");
+//            long pubId = input.getLongByField("query");
 
             double x = input.getDoubleByField("x");
             double y = input.getDoubleByField("y");
@@ -301,7 +335,7 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
 
 
 
-            System.out.println(x + "==" + y+ "==" + pubId + " , grid : " +  gridX + " , " + gridY + "gridcellNum : " + gridCellNum);
+            System.out.println(x + "==" + y+ "==" + id + " , grid : " +  gridX + " , " + gridY + "gridcellNum : " + gridCellNum);
 
 
             nodeNum = hilbertHash.get(gridCellNum);
@@ -333,7 +367,7 @@ public class FourthSpacePartitioningRoutingBolt implements IRichBolt {
             */
 
             Values val = new Values();
-            val.add(pubId);
+            val.add(id);
             val.add(x);
             val.add(y);
             val.add(str);

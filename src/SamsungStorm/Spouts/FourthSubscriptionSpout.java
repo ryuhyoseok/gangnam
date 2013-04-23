@@ -78,16 +78,16 @@ public class FourthSubscriptionSpout extends BaseRichSpout {
 
           short pubFlag = din.readShort();
 
-            if(pubFlag == 2){
+            if(pubFlag == -2){
                 int sum = din.readInt();
                 int perNode = sum / nodeNum;
-                _collector.emit(new Values(sum, perNode));
+                _collector.emit(new Values(pubFlag, sum, perNode, 0, 0, 0, false));
             }
 
-            if(pubFlag == 3){
+            if(pubFlag == -3){
                 int gridCellNum = din.readInt();
                 int count = din.readInt();
-                _collector.emit(new Values(gridCellNum, count));
+                _collector.emit(new Values(pubFlag, gridCellNum, count, 0, 0, 0, false));
 
             }
               else{

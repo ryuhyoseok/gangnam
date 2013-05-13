@@ -2,8 +2,10 @@ package SamsungStorm.Bolts;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
@@ -17,12 +19,12 @@ import java.util.*;
  * Time: 오후 7:40
  * To change this template use File | Settings | File Templates.
  */
-public class SpacePartitioningQueryBolt implements IRichBolt {
+public class SpacePartitioningQueryBolt extends BaseBasicBolt {
 
-    OutputCollector collector;
     HashMap<Integer, List<GridCellElement>> gridIndex;
     List<GridCellElement> hilbert;
-
+    long totalCounter = 0;
+    long matchedCounter = 0;
     int gridSize;
 
 
@@ -32,19 +34,16 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
     }
 
-    public void prepare(Map stormConf, TopologyContext context,
-                        OutputCollector collector) {
-
-        this.gridIndex = new HashMap<Integer, List<GridCellElement>>();
-        this.collector = collector;
-
+    public void prepare(java.util.Map stormConf, backtype.storm.task.TopologyContext context) {
+      this.gridIndex = new HashMap<Integer, List<GridCellElement>>();
     }
 
-
-    public void execute(Tuple input) {
-        System.out.println(input);
-
-        boolean isPub = input.getBooleanByField("isPub");
+    @Override
+    public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
+//        System.out.println(tuple);
+//        System.out.println(tuple);
+        totalCounter ++;
+        boolean isPub = tuple.getBooleanByField("isPub");
         int i,j;
         int cnt = 0;
 
@@ -64,14 +63,14 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
         if(isPub == false){
 
-            long subId = input.getLongByField("query");
-            double min_x = input.getDoubleByField("minx");
-            double min_y = input.getDoubleByField("miny");
-            double max_x = input.getDoubleByField("maxx");
-            double max_y = input.getDoubleByField("maxy");
-            String str  = input.getStringByField("xml");
-            int nodeNum = input.getIntegerByField("node");
-            int gridCellNum = input.getIntegerByField("gridcell");
+            long subId = tuple.getLongByField("query");
+            double min_x = tuple.getDoubleByField("minx");
+            double min_y = tuple.getDoubleByField("miny");
+            double max_x = tuple.getDoubleByField("maxx");
+            double max_y = tuple.getDoubleByField("maxy");
+            String str  = tuple.getStringByField("xml");
+            int nodeNum = tuple.getIntegerByField("node");
+            int gridCellNum = tuple.getIntegerByField("gridcell");
 
 
             GridCellElement subscription = new GridCellElement(subId, min_x, min_y, max_x, max_y, str);
@@ -82,11 +81,18 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
                 gridIndex.put(gridCellNum, query);
 //                System.out.println("New Query is coming!! "+ gridCellNum + " ID : " + gridIndex.get(gridCellNum).get(0).sub_id);
 
+                System.out.println("Subscription " +
+                  "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent() +
+                  "][" + subId + "," + min_x + "," + min_y + "," + max_x + "," + max_y + "," +  isPub + "]");
+
             }
 
             else{
                 gridIndex.get(gridCellNum).add(subscription);
 //                System.out.println("QueryQueryQuery " + gridCellNum + "ID : " + gridIndex.get(gridCellNum).get(1).sub_id);
+                System.out.println("Subscription " +
+                    "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent() +
+                    "][" + subId + "," + min_x + "," + min_y + "," + max_x + "," + max_y + "," +  isPub + "]");
             }
 
 
@@ -101,12 +107,12 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
 
         else{
 
-            long pubId = input.getLongByField("query");
-            double x = input.getDoubleByField("x");
-            double y = input.getDoubleByField("y");
-            String str = input.getStringByField("xml");
-            int nodeNum = input.getIntegerByField("node");
-            int gridCellNum = input.getIntegerByField("gridcell");
+            long pubId = tuple.getLongByField("query");
+            double x = tuple.getDoubleByField("x");
+            double y = tuple.getDoubleByField("y");
+            String str = tuple.getStringByField("xml");
+            int nodeNum = tuple.getIntegerByField("node");
+            int gridCellNum = tuple.getIntegerByField("gridcell");
 
 
             if(!gridIndex.containsKey(gridCellNum)){
@@ -131,9 +137,17 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
                 }
             }
 
-            if(cnt == 0){
-//                System.out.println("===============Not Matched cnt = 0==================");
-            }
+          if(cnt == 0){
+//          System.out.println("===============Not Matched cnt = 0==================");
+            System.out.println("publish " + "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent()
+                +"] ["+ pubId + "," + x + "," + y + ","  +  isPub + "]"  +
+                " NOT TOTAL:" + totalCounter);
+          }else {
+            matchedCounter ++;
+            System.out.println("Publish " + "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent() +
+                "][" + pubId + "," + x + "," + y + ","  +  isPub + "]"  +
+                "MATCHED  MATCHCOUNTER:" + matchedCounter + " TOTAL:" + totalCounter);
+          }
 
             /*
             if(grid[gridX][gridY] == null){
@@ -161,12 +175,12 @@ public class SpacePartitioningQueryBolt implements IRichBolt {
             }
             */
         }
-      collector.emit(input , new Values(""));
+//      collector.emit(tuple , new Values(""));
+      basicOutputCollector.emit(new Values(""));
 
     }
 
-
-    public void cleanup() {
+  public void cleanup() {
 
     }
 

@@ -27,6 +27,8 @@ public class SubscriptionSpout extends BaseRichSpout {
     private int port;
     private String serverAddr;
     private static final String str;
+    private long totalCounter = 0;
+    private long maximum = 0;
 
     static {
       StringBuilder builder = new StringBuilder();
@@ -36,9 +38,10 @@ public class SubscriptionSpout extends BaseRichSpout {
       str = builder.toString();
     }
 
-    public SubscriptionSpout(String  addr , int port) {
+    public SubscriptionSpout(String  addr , int port , long maximum) {
         this.serverAddr = addr;
         this.port = port;
+        this.maximum = maximum;
     }
 
     @Override
@@ -62,33 +65,43 @@ public class SubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        try {
-
-//          String[] strs = reader.readLine().split(",");
-//          short pubFlag = Short.parseShort(strs[0]);
-//          long id = Long.parseLong(strs[1]);
-//          double minX = Double.parseDouble(strs[2]);
-//          double minY = Double.parseDouble(strs[3]);
-//          double maxX = Double.parseDouble(strs[4]);
-//          double maxY = Double.parseDouble(strs[5]);
-//          short endFlag = Short.parseShort(strs[6]);
-          short pubFlag = din.readShort();
-          long id = din.readLong();
-          double minX = din.readDouble();
-          double minY = din.readDouble();
-          double maxX = din.readDouble();
-          double maxY = din.readDouble();
-          short endFlag = din.readShort();
-          if(pubFlag != 1) {
-            throw new Exception("wrong data input!  pubflag = " + pubFlag);
-          }
-          if(endFlag != -1) {
-            throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
-          }
-          _collector.emit(new Values(id , minX , minY, maxX , maxY, str , false) );
-
-        }catch(Exception e){
+        if(totalCounter >= maximum) {
+          try{
+            Thread.sleep(1000);
+          }catch(Exception e) {
             e.printStackTrace();
-        }
+          }
+        }else {
+          totalCounter ++;
+          try {
+  //          String[] strs = reader.readLine().split(",");
+  //          short pubFlag = Short.parseShort(strs[0]);
+  //          long id = Long.parseLong(strs[1]);
+  //          double minX = Double.parseDouble(strs[2]);
+  //          double minY = Double.parseDouble(strs[3]);
+  //          double maxX = Double.parseDouble(strs[4]);
+  //          double maxY = Double.parseDouble(strs[5]);
+  //          short endFlag = Short.parseShort(strs[6]);
+            short pubFlag = din.readShort();
+            long id = din.readLong();
+            double minX = din.readDouble();
+            double minY = din.readDouble();
+            double maxX = din.readDouble();
+            double maxY = din.readDouble();
+            short endFlag = din.readShort();
+            if(pubFlag != 1) {
+              throw new Exception("wrong data input!  pubflag = " + pubFlag);
+            }
+            if(endFlag != -1) {
+              throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
+            }
+            Values value =  new Values(id , minX , minY, maxX , maxY, str , false);
+  //          System.out.println("TUPLE:[" + id + "," + minX + "," + minY + "," + maxX + "," + maxY + "," +  false + "]" );
+            _collector.emit(value );
+
+          }catch(Exception e){
+              e.printStackTrace();
+          }
+       }
     }
 }

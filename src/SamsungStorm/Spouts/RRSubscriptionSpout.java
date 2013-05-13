@@ -32,6 +32,8 @@ public class RRSubscriptionSpout extends BaseRichSpout {
     private static final String str;
     private String[] rrs;
     private int counter;
+    private long totalCounter = 0;
+    private long maximum = 0;
     static {
       StringBuilder builder = new StringBuilder();
       for(int i = 0 ; i < 1024 ; i ++ ) {
@@ -40,11 +42,12 @@ public class RRSubscriptionSpout extends BaseRichSpout {
       str = builder.toString();
     }
 
-    public RRSubscriptionSpout(String addr, int port , String[] rrs) {
+    public RRSubscriptionSpout(String addr, int port , String[] rrs , long maximum) {
         this.serverAddr = addr;
         this.port = port;
         this.rrs = rrs;
         counter = 0;
+        this.maximum = maximum;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class RRSubscriptionSpout extends BaseRichSpout {
         socket = new Socket(serverAddr , port);
         din = new DataInputStream(socket.getInputStream());
 //        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
+        System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress() + " , time : " + System.currentTimeMillis());
       } catch(IOException e) {
         e.printStackTrace();
       }
@@ -70,6 +73,13 @@ public class RRSubscriptionSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
+      if(totalCounter >= maximum) {
+        try{
+          Thread.sleep(1000);
+        }  catch(Exception e) {
+          e.printStackTrace();
+        }
+      } else {
         try {
 //          String[] strs = reader.readLine().split(",");
 //          short pubFlag = Short.parseShort(strs[0]);
@@ -96,7 +106,9 @@ public class RRSubscriptionSpout extends BaseRichSpout {
           }
 
 //          _collector.emit(new Values(id ,minX , minY, maxX , maxY, str,false ));
-          _collector.emit(rrs[counter%rrs.length] ,new Values(id , minX , minY, maxX, maxY, str,false ));
+          Values value = new Values(id , minX , minY, maxX, maxY, str,false );
+          _collector.emit(rrs[counter%rrs.length] , value );
+//          System.out.println("STEAMID:" + rrs[counter%rrs.length] + " TUPLE:[" + id + "," + minX + "," + minY + "," + maxX + "," + maxY + "," +  false + "]");
           if(counter == rrs.length -1) {
             counter = 0;
           }else {
@@ -106,5 +118,6 @@ public class RRSubscriptionSpout extends BaseRichSpout {
         }catch(Exception e){
             e.printStackTrace();
         }
+      }
     }
 }

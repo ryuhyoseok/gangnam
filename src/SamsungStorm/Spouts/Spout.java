@@ -57,7 +57,7 @@ public class Spout extends BaseRichSpout {
       socket = new Socket(serverAddr , port);
 //      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       din = new DataInputStream(socket.getInputStream());
-      System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
+      System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress() + " , currentTime : " + System.currentTimeMillis());
     } catch(IOException e) {
       e.printStackTrace();
     }
@@ -85,7 +85,9 @@ public class Spout extends BaseRichSpout {
         throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
 //      System.out.println("PUBBBBB : " + id + " , " + x + " , " + y );
-      _collector.emit(new Values(id , x , y, str,true) , id);
+      Values value = new Values(id , x , y, str,true);
+      _collector.emit(value , id);
+//      System.out.println("TUPLE:[" + id + "," + x + "," + y + ","  +  true + "]" );
 
     }catch(Exception e){
       e.printStackTrace();

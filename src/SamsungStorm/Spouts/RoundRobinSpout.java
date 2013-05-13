@@ -33,7 +33,6 @@ public class RoundRobinSpout extends BaseRichSpout {
   private static final String str;
   private String[] rrs;
   private int counter;
-  private long msgId = 0;
 
   static {
     StringBuilder builder = new StringBuilder();
@@ -65,7 +64,7 @@ public class RoundRobinSpout extends BaseRichSpout {
       socket = new Socket(serverAddr , port);
       din = new DataInputStream(socket.getInputStream());
 //      reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress());
+      System.out.println("Successfully conneted to " + socket.getInetAddress().getHostAddress() + ", time : " + System.currentTimeMillis());
     } catch(IOException e) {
       e.printStackTrace();
     }
@@ -92,7 +91,10 @@ public class RoundRobinSpout extends BaseRichSpout {
       if(endFlag != -1) {
         throw new Exception("wrong data end! end(pub)Flag = " + endFlag);
       }
-      _collector.emit(rrs[counter%rrs.length] ,new Values(id , x , y, str,true ) , msgId ++);
+
+      Values value =  new Values(id , x , y, str,true );
+      _collector.emit(rrs[counter%rrs.length] , value  , id);
+//      System.out.println("STEAMID:" + rrs[counter%rrs.length] + " TUPLE:[" + id + "," + x + "," + y + ","  +  true + "]" );
       if(counter == rrs.length -1) {
         counter = 0;
       }else {

@@ -20,10 +20,12 @@ import java.util.*;
  * Time: 오후 7:40
  * To change this template use File | Settings | File Templates.
  */
-public class RoundRobinQueryBolt extends BaseRichBolt {
+public class RoundRobinQueryBolt extends BaseBasicBolt {
 
-    OutputCollector collector;
+//    OutputCollector collector;
     List<GridCellElement>[][] grid;
+    long totalCounter = 0;
+    long matchedCounter = 0;
     int gridSize = 512;
 
     public RoundRobinQueryBolt(int gridSize) {
@@ -31,18 +33,20 @@ public class RoundRobinQueryBolt extends BaseRichBolt {
       }
 
     @Override
-    public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
+    public void prepare(java.util.Map stormConf, backtype.storm.task.TopologyContext context) {
       grid = new ArrayList[gridSize][gridSize];
-      this.collector = outputCollector;
       //To change body of implemented methods use File | Settings | File Templates.
     }
 //    public void execute(Tuple input) {
 //
 //    }
 //
+
   @Override
-  public void execute(Tuple tuple) {
-    System.out.println("tupleInformations : " + tuple );
+  public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
+    System.out.println(tuple );
+    System.out.println(tuple );
+
     boolean isPub = tuple.getBooleanByField("isPub");
     int i,j;
     int cnt = 0;
@@ -93,18 +97,22 @@ public class RoundRobinQueryBolt extends BaseRichBolt {
             grid[i][j] = new ArrayList<GridCellElement>();
           }
           grid[i][j].add(subscription);
-          //System.out.println(i + ", " + j + ", " + grid[i][j].size());
+
+          System.out.println("Subscription " +
+              "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent() +
+              "][" + subId + "," + min_x + "," + min_y + "," + max_x + "," + max_y + "," +  isPub + "]"
+              + " ADDED[" +  i + "," + j + ",] " + grid[i][j].size());
         }
       }
 
 //      System.out.println();
 //      System.out.println("=========New Query is registered============");
-      int totalSize = 8 + 8 + 8 + 8 + 8 + str.getBytes().length;
+//      int totalSize = 8 + 8 + 8 + 8 + 8 + str.getBytes().length;
 //      System.out.println("Query ID : " + subId + "  minx : " + min_x + "  miny : " + min_y + "  maxx : " + max_x + "  maxy : " + max_y + " size " + totalSize);
     }
 
     else{
-
+      totalCounter ++;
       long pubId = tuple.getLongByField("query");
       double x = tuple.getDoubleByField("x");
       double y = tuple.getDoubleByField("y");
@@ -139,16 +147,22 @@ public class RoundRobinQueryBolt extends BaseRichBolt {
         }
         if(cnt == 0){
 //          System.out.println("===============Not Matched cnt = 0==================");
+          System.out.println("publish " + "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent()
+              +"] ["+ pubId + "," + x + "," + y + ","  +  isPub + "]"  +
+              " NOT TOTAL:" + totalCounter);
+        }else {
+          matchedCounter ++;
+          System.out.println("Publish " + "TUPLE:["+tuple.getSourceStreamId() +","+ tuple.getSourceComponent() +
+              "][" + pubId + "," + x + "," + y + ","  +  isPub + "]"  +
+              "MATCHED  MATCHCOUNTER:" + matchedCounter + " TOTAL:" + totalCounter);
         }
 
       }
     }
 
-    collector.emit(tuple, new Values(""));
+    basicOutputCollector.emit( new Values(""));
     //
   }
-
-
 
   public void cleanup() {
 

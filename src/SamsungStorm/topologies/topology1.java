@@ -25,8 +25,8 @@ import backtype.storm.tuple.Fields;
 public class topology1 {
 
   public static void main(String[] args) throws Exception {
-    if(args.length < 9) {
-      System.out.println("TOPOLOGY_NAME  SERVERADDR   PUBPORT  SUBPORT  SPOUTNUM   RRNUM  GRIDSIZE  WORKERNUN LOCAL");
+    if(args.length < 12) {
+      System.out.println("TOPOLOGY_NAME  SERVERADDR   PUBPORT  SUBPORT  SPOUTNUM  RRNUM  GRIDSIZE  WORKERNUN LOCAL MAX_PENDING(0 IS NULL) SUBNUM  ROUTINGNUM");
       System.exit(0);
     }
 
@@ -53,12 +53,34 @@ public class topology1 {
 
     TopologyBuilder builder = new TopologyBuilder();
 
+    long subNum = Long.parseLong(args[10]);
+    int routingNum = Integer.parseInt(args[11]);
+    /**EXPERIMENT 1*/
+//    builder.setSpout( "rrpub", new Spout(serverAddr , pubPort ), spoutNum );
+//    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort , subNum ), spoutNum );
+//    builder.setBolt("rrq" , new RoundRobinQueryBolt(gridSize) , rrNum).fieldsGrouping("rrpub" , new Fields("query")).allGrouping("rrsub");
+
+    /*EXPERIMENT2*/
+//    builder.setSpout( "rrpub", new Spout(serverAddr , pubPort ), spoutNum );
+//    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort , subNum ), spoutNum );
+//    builder.setBolt("rrq" , new RoundRobinQueryBolt(gridSize) , rrNum).fieldsGrouping("rrsub" , new Fields("query")).allGrouping("rrpub");
+
+    /*EXPERIMENT3*/
     builder.setSpout( "rrpub", new Spout(serverAddr , pubPort ), spoutNum );
-    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort ), spoutNum );
-//    builder.setSpout( "rrpub", new RoundRobinSpout(serverAddr , pubPort, rrs ), spoutNum );
-//    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort ), spoutNum );
-    builder.setBolt("spr" , new SpacePartitioningRoutingBolt(gridSize , rrNum) , 1).allGrouping("rrpub").allGrouping("rrsub");
-    builder.setBolt("spq" , new SpacePartitioningQueryBolt(gridSize) , rrNum).fieldsGrouping("spr"  , new Fields("node"));
+    builder.setSpout( "rrsub", new SubscriptionSpout(serverAddr , subPort , subNum ), spoutNum );
+    builder.setBolt("spr" , new SpacePartitioningRoutingBolt3(gridSize , rrNum) , routingNum).shuffleGrouping("rrpub").shuffleGrouping("rrsub");
+    builder.setBolt("spq" , new RoundRobinQueryBolt(gridSize) , rrNum).fieldsGrouping("spr", new Fields("node"));
+//
+
+
+//    builder.setBolt("spr" , new SpacePartitioningRoutingBolt2(gridSize , rrNum),routingNum).shuffleGrouping("rrpub").shuffleGrouping("rrsub");
+
+//    for(int i = 0 ; i < rrs.length ; i ++) {
+//      builder.setBolt("spq_" + i, new RoundRobinQueryBolt(gridSize) , 1).allGrouping("spr", rrs[i]);
+//    }
+//    for(int i = 0 ; i < rrs.length ; i ++) {
+//      builder.setBolt("spq_"+i,new SpacePartitioningQueryBolt(gridSize) ,1 ).allGrouping("spr", rrs[i]);
+//    }
 //    for(int i = 0 ; i < rrs.length ; i ++) {
 //      builder.setBolt("rrq_" + i, new RoundRobinQueryBolt(gridSize) ,1).allGrouping("rrpub", rrs[i]).allGrouping("rrsub");
 //    }
@@ -67,8 +89,15 @@ public class topology1 {
 //    conf.setMaxSpoutPending(10);
     conf.setDebug(false);
 
+    int maxPending = Integer.parseInt(args[9]);
+    if(maxPending < 1) {
+    } else {
+      conf.setMaxSpoutPending(maxPending);
+    }
+
     if (!local) {
       conf.setNumWorkers(workerNum);
+      conf.setNumAckers(rrNum);
       StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     } else {
       conf.setMaxTaskParallelism(workerNum);
